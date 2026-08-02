@@ -1,0 +1,10 @@
+app:
+    name: "E-commerce"
+    env: "development"
+    version: "v1.0.0"
+
+server:
+    port: 8000
+
+pagination:
+    defaultLimit: 20
