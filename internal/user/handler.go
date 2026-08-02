@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	appmiddleware "github.com/naresh-official/ecommerce_go/internal/middleware"
+	"github.com/naresh-official/ecommerce_go/internal/auth"
 	"github.com/naresh-official/ecommerce_go/internal/response"
 	"github.com/naresh-official/ecommerce_go/internal/validator"
 )
@@ -21,7 +21,7 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(appmiddleware.UserContextKey).(string)
+	userID := auth.GetUserIdFromContext(r.Context())
 
 	profile, err := h.service.GetProfile(r.Context(), userID)
 	if err != nil {
@@ -39,7 +39,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(appmiddleware.UserContextKey).(string)
+	userID := auth.GetUserIdFromContext(r.Context())
 
 	var req UpdateProfileRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -47,13 +47,8 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.Validate.Struct(req); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		var message string
-		for _, fieldError := range validationErrors {
-			message += validator.ValidationMessage(fieldError) + "\n"
-		}
-		response.Error(w, http.StatusBadRequest, message)
+	if err := validator.ValidateRequest(req); err != nil {
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -77,7 +72,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(appmiddleware.UserContextKey).(string)
+	userID := auth.GetUserIdFromContext(r.Context())
 
 	var req ChangePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -85,13 +80,8 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.Validate.Struct(req); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		var message string
-		for _, fieldError := range validationErrors {
-			message += validator.ValidationMessage(fieldError) + "\n"
-		}
-		response.Error(w, http.StatusBadRequest, message)
+	if err := validator.ValidateRequest(req); err != nil {
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

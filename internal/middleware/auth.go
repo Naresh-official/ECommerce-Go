@@ -1,15 +1,12 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/naresh-official/ecommerce_go/configs"
 	"github.com/naresh-official/ecommerce_go/internal/auth"
 	"github.com/naresh-official/ecommerce_go/internal/response"
 )
-
-var UserContextKey = "user_id"
 
 func Auth(cfg *configs.JWTConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -26,8 +23,47 @@ func Auth(cfg *configs.JWTConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), UserContextKey, claims.UserID)
+			ctx := auth.WithUser(r.Context(), *claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func AuthorizeUser() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role := auth.GetUserRoleFromContext(r.Context())
+			if role != auth.RoleUser {
+				response.Error(w, http.StatusForbidden, "Forbidden")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func AuthorizeAdmin() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role := auth.GetUserRoleFromContext(r.Context())
+			if role != auth.RoleAdmin {
+				response.Error(w, http.StatusForbidden, "Forbidden")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func AuthorizeSeller() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role := auth.GetUserRoleFromContext(r.Context())
+			if role != auth.RoleSeller {
+				response.Error(w, http.StatusForbidden, "Forbidden")
+				return
+			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }

@@ -8,12 +8,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/naresh-official/ecommerce_go/configs"
+	"github.com/naresh-official/ecommerce_go/internal/address"
+	"github.com/naresh-official/ecommerce_go/internal/app"
 	"github.com/naresh-official/ecommerce_go/internal/auth"
 	"github.com/naresh-official/ecommerce_go/internal/database"
 	"github.com/naresh-official/ecommerce_go/internal/database/sqlc"
 	appmiddleware "github.com/naresh-official/ecommerce_go/internal/middleware"
 	"github.com/naresh-official/ecommerce_go/internal/router"
-	userpkg "github.com/naresh-official/ecommerce_go/internal/user"
+	"github.com/naresh-official/ecommerce_go/internal/user"
 )
 
 func main() {
@@ -36,15 +38,38 @@ func main() {
 
 	queries := sqlc.New(database.DB)
 
+	// Initialize repositories, services, and handlers for each module
+
 	authRepository := auth.NewRepository(queries)
 	authService := auth.NewService(authRepository, &cfg.JWT)
 	authHandler := auth.NewHandler(authService, &cfg.App)
 
-	userRepository := userpkg.NewRepository(queries)
-	userService := userpkg.NewService(userRepository)
-	userHandler := userpkg.NewHandler(userService)
+	userRepository := user.NewRepository(queries)
+	userService := user.NewService(userRepository)
+	userHandler := user.NewHandler(userService)
 
-	router.Register(r, appmiddleware.Auth(&cfg.JWT), authHandler, userHandler)
+	addressRepository := address.NewRepository(queries)
+	addressService := address.NewService(addressRepository)
+	addressHandler := address.NewHandler(addressService)
+
+	// Initialize the application with handlers and middleware
+
+	application := app.App{
+		Handlers: app.Handlers{
+			Auth:    authHandler,
+			User:    userHandler,
+			Address: addressHandler,
+		},
+		Middleware: app.Middlewares{
+			Auth:   appmiddleware.Auth(&cfg.JWT),
+			User:   appmiddleware.AuthorizeUser(),
+			Admin:  appmiddleware.AuthorizeAdmin(),
+			Seller: appmiddleware.AuthorizeSeller(),
+		},
+	}
+
+	// Register the routes with the router
+	router.Register(r, application)
 
 	slog.Info("Server started at port " + cfg.Server.Port)
 	http.ListenAndServe(":"+cfg.Server.Port, r)

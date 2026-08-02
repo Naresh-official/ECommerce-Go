@@ -44,18 +44,11 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.Validate.Struct(req); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		var message string
-
-		for _, fieldError := range validationErrors {
-			message += validator.ValidationMessage(fieldError) + "\n"
-		}
-
+	if err := validator.ValidateRequest(req); err != nil {
 		response.Error(
 			w,
 			http.StatusBadRequest,
-			message,
+			err.Error(),
 		)
 		return
 	}
@@ -107,18 +100,11 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.Validate.Struct(req); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		var message string
-
-		for _, fieldError := range validationErrors {
-			message += validator.ValidationMessage(fieldError) + "\n"
-		}
-
+	if err := validator.ValidateRequest(req); err != nil {
 		response.Error(
 			w,
 			http.StatusBadRequest,
-			message,
+			err.Error(),
 		)
 		return
 	}
@@ -183,7 +169,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(string)
+	userID := GetUserIdFromContext(r.Context())
 
 	getMeResponse, err := h.service.GetMeUser(r.Context(), userID)
 
