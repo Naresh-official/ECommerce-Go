@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -55,8 +56,8 @@ func (ns NullRole) Value() (driver.Value, error) {
 }
 
 type Address struct {
-	ID           pgtype.UUID      `json:"id"`
-	UserID       pgtype.UUID      `json:"user_id"`
+	ID           uuid.UUID        `json:"id"`
+	UserID       uuid.UUID        `json:"user_id"`
 	AddressLine1 string           `json:"address_line1"`
 	AddressLine2 pgtype.Text      `json:"address_line2"`
 	City         string           `json:"city"`
@@ -71,7 +72,7 @@ type Address struct {
 }
 
 type User struct {
-	ID           pgtype.UUID      `json:"id"`
+	ID           uuid.UUID        `json:"id"`
 	Name         string           `json:"name"`
 	Email        string           `json:"email"`
 	PasswordHash string           `json:"password_hash"`
@@ -80,4 +81,5 @@ type User struct {
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
 	DeletedAt    pgtype.Timestamp `json:"deleted_at"`
+	RefreshToken pgtype.Text      `json:"refresh_token"`
 }

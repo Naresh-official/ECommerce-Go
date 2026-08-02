@@ -8,14 +8,104 @@ package sqlc
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getUserById = `-- name: GetUserById :one
-SELECT id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at FROM users WHERE id = $1
+const createUser = `-- name: CreateUser :one
+INSERT INTO users
+(name, email, password_hash,phone,role)
+VALUES
+($1,$2,$3,$4,$5)
+RETURNING id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error) {
+type CreateUserParams struct {
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+	Phone        string `json:"phone"`
+	Role         Role   `json:"role"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Name,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Phone,
+		arg.Role,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.RefreshToken,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token FROM users WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.RefreshToken,
+	)
+	return i, err
+}
+
+const getUserByEmailAndRole = `-- name: GetUserByEmailAndRole :one
+SELECT id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token FROM users WHERE email = $1 AND role = $2
+`
+
+type GetUserByEmailAndRoleParams struct {
+	Email string `json:"email"`
+	Role  Role   `json:"role"`
+}
+
+func (q *Queries) GetUserByEmailAndRole(ctx context.Context, arg GetUserByEmailAndRoleParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmailAndRole, arg.Email, arg.Role)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.RefreshToken,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserById, id)
 	var i User
 	err := row.Scan(
@@ -28,6 +118,92 @@ func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.RefreshToken,
+	)
+	return i, err
+}
+
+const updateRefreshToken = `-- name: UpdateRefreshToken :exec
+UPDATE users
+SET refresh_token = $2
+WHERE id = $1
+`
+
+type UpdateRefreshTokenParams struct {
+	ID           uuid.UUID   `json:"id"`
+	RefreshToken pgtype.Text `json:"refresh_token"`
+}
+
+func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error {
+	_, err := q.db.Exec(ctx, updateRefreshToken, arg.ID, arg.RefreshToken)
+	return err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET name = $2, email = $3, phone = $4, role = $5
+WHERE id = $1
+RETURNING id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token
+`
+
+type UpdateUserParams struct {
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Email string    `json:"email"`
+	Phone string    `json:"phone"`
+	Role  Role      `json:"role"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.Phone,
+		arg.Role,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.RefreshToken,
+	)
+	return i, err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :one
+UPDATE users
+SET password_hash = $2
+WHERE id = $1
+RETURNING id, name, email, password_hash, phone, role, created_at, updated_at, deleted_at, refresh_token
+`
+
+type UpdateUserPasswordParams struct {
+	ID           uuid.UUID `json:"id"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }

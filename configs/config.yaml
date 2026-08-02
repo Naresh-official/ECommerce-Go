@@ -8,3 +8,7 @@ server:
 
 pagination:
     defaultLimit: 20
+
+jwt:
+    accessTokenExpiration: 15m # 15 minutes
+    refreshTokenExpiration: 168h # 7 days

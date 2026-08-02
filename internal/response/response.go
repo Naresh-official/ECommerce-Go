@@ -7,7 +7,7 @@ import (
 
 type APIResponse struct {
 	Success    bool               `json:"success"`
-	Message    string             `json:"message"`
+	Message    string             `json:"message,omitempty"`
 	Data       any                `json:"data,omitempty"`
 	Pagination PaginationResponse `json:"pagination,omitzero"`
 	Error      string             `json:"error,omitempty"`

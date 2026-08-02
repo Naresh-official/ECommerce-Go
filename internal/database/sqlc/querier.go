@@ -7,11 +7,17 @@ package sqlc
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type Querier interface {
-	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserByEmailAndRole(ctx context.Context, arg GetUserByEmailAndRoleParams) (User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
+	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,8 +13,8 @@ type Config struct {
 	App        AppConfig        `yaml:"app"`
 	Server     ServerConfig     `yaml:"server"`
 	Pagination PaginationConfig `yaml:"pagination"`
+	JWT        JWTConfig        `yaml:"jwt"`
 	Database   DatabaseConfig
-	JWT        JWTConfig
 }
 
 type AppConfig struct {
@@ -35,7 +36,10 @@ type DatabaseConfig struct {
 }
 
 type JWTConfig struct {
-	JWTSecret string
+	AccessTokenSecret      string
+	RefreshTokenSecret     string
+	AccessTokenExpiration  time.Duration `yaml:"accessTokenExpiration"`
+	RefreshTokenExpiration time.Duration `yaml:"refreshTokenExpiration"`
 }
 
 func findProjectRoot() (string, error) {
@@ -75,15 +79,21 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config YAML: %w", err)
 	}
 
+	// Load environment variables for sensitive data
 	cfg.Database.DatabaseUrl = os.Getenv("DATABASE_URL")
-	cfg.JWT.JWTSecret = os.Getenv("JWT_SECRET")
+	cfg.JWT.AccessTokenSecret = os.Getenv("ACCESS_TOKEN_SECRET")
+	cfg.JWT.RefreshTokenSecret = os.Getenv("REFRESH_TOKEN_SECRET")
 
 	if cfg.Database.DatabaseUrl == "" {
 		return nil, fmt.Errorf("Database URL is Empty")
 	}
 
-	if cfg.JWT.JWTSecret == "" {
-		return nil, fmt.Errorf("JWT Secret is Empty")
+	if cfg.JWT.AccessTokenSecret == "" {
+		return nil, fmt.Errorf("Access Token Secret is Empty")
+	}
+
+	if cfg.JWT.RefreshTokenSecret == "" {
+		return nil, fmt.Errorf("Refresh Token Secret is Empty")
 	}
 
 	return cfg, nil

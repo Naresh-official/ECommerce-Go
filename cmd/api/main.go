@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/naresh-official/ecommerce_go/configs"
+	"github.com/naresh-official/ecommerce_go/internal/auth"
 	"github.com/naresh-official/ecommerce_go/internal/database"
 	"github.com/naresh-official/ecommerce_go/internal/database/sqlc"
+	appmiddleware "github.com/naresh-official/ecommerce_go/internal/middleware"
 	"github.com/naresh-official/ecommerce_go/internal/router"
 )
 
@@ -26,14 +28,18 @@ func main() {
 		log.Fatal("Error in Connecting to Database ", err)
 	}
 
-	queries := sqlc.New(database.DB)
-
 	r := chi.NewRouter()
 
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	r.Use(chimiddleware.Logger)
+	r.Use(chimiddleware.Recoverer)
 
-	router.Register(r)
+	queries := sqlc.New(database.DB)
+
+	authRepository := auth.NewRepository(queries)
+	authService := auth.NewService(authRepository, &cfg.JWT)
+	authHandler := auth.NewHandler(authService, &cfg.App)
+
+	router.Register(r, appmiddleware.Auth(&cfg.JWT), authHandler)
 
 	slog.Info("Server started at port " + cfg.Server.Port)
 	http.ListenAndServe(":"+cfg.Server.Port, r)
