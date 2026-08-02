@@ -13,6 +13,7 @@ import (
 	"github.com/naresh-official/ecommerce_go/internal/database/sqlc"
 	appmiddleware "github.com/naresh-official/ecommerce_go/internal/middleware"
 	"github.com/naresh-official/ecommerce_go/internal/router"
+	userpkg "github.com/naresh-official/ecommerce_go/internal/user"
 )
 
 func main() {
@@ -39,7 +40,11 @@ func main() {
 	authService := auth.NewService(authRepository, &cfg.JWT)
 	authHandler := auth.NewHandler(authService, &cfg.App)
 
-	router.Register(r, appmiddleware.Auth(&cfg.JWT), authHandler)
+	userRepository := userpkg.NewRepository(queries)
+	userService := userpkg.NewService(userRepository)
+	userHandler := userpkg.NewHandler(userService)
+
+	router.Register(r, appmiddleware.Auth(&cfg.JWT), authHandler, userHandler)
 
 	slog.Info("Server started at port " + cfg.Server.Port)
 	http.ListenAndServe(":"+cfg.Server.Port, r)
