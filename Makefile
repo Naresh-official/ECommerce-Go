@@ -21,3 +21,6 @@ migrate-force:
 
 migrate-version:
 	migrate -source $(MIGRATIONS_SOURCE) -database "$(DATABASE_URL)" version
+
+sqlc:
+	sqlc generate
