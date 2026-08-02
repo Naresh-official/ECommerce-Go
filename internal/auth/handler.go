@@ -241,3 +241,52 @@ func (h *Handler) SignOut(w http.ResponseWriter, r *http.Request) {
 		nil,
 	)
 }
+
+func (h *Handler) RefreshAccessToken(w http.ResponseWriter, r *http.Request) {
+	refreshTokenCookie, err := r.Cookie("refresh_token")
+	if err != nil || refreshTokenCookie.Value == "" {
+		response.Error(
+			w,
+			http.StatusUnauthorized,
+			"Refresh token not found",
+		)
+		return
+	}
+
+	updateTokenResult, err := h.service.UpdateAccessToken(r.Context(), refreshTokenCookie.Value)
+	if err != nil {
+		response.Error(
+			w,
+			http.StatusUnauthorized,
+			"Invalid refresh token",
+		)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    updateTokenResult.AccessToken,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   h.cfg.Env != "development",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(h.service.cfg.AccessTokenExpiration.Seconds()),
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    updateTokenResult.RefreshToken,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   h.cfg.Env != "development",
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(h.service.cfg.RefreshTokenExpiration.Seconds()),
+	})
+
+	response.Json(
+		w,
+		http.StatusOK,
+		"Token refreshed successfully",
+		nil,
+	)
+}

@@ -15,9 +15,10 @@ type Service struct {
 }
 
 var (
-	ErrEmailAlreadyExists = errors.New("Email already exists")
-	ErrInvalidCredentials = errors.New("Invalid Credentials")
-	ErrUserNotFound       = errors.New("User not found")
+	ErrEmailAlreadyExists  = errors.New("Email already exists")
+	ErrInvalidCredentials  = errors.New("Invalid Credentials")
+	ErrUserNotFound        = errors.New("User not found")
+	ErrInvalidRefreshToken = errors.New("Invalid refresh token")
 )
 
 func NewService(repo *Repository, cfg *configs.JWTConfig) *Service {
@@ -108,5 +109,43 @@ func (s *Service) GetMeUser(ctx context.Context, userID string) (*GetMeResponse,
 		Name:  user.Name,
 		Email: user.Email,
 		Role:  string(user.Role),
+	}, nil
+}
+
+func (s *Service) UpdateAccessToken(ctx context.Context, refreshToken string) (*UpdateAccessTokenServiceResult, error) {
+	refreshTokenClaims, err := ValidateRefreshToken(s.cfg, refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.repo.GetUserById(ctx, uuid.MustParse(refreshTokenClaims.UserID))
+	if err != nil {
+		if errors.Is(err, NoRowsError) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	if !user.RefreshToken.Valid || user.RefreshToken.String != refreshToken {
+		return nil, ErrInvalidRefreshToken
+	}
+
+	newAccessToken, err := GenerateAccessToken(s.cfg, user.ID.String(), user.Email, string(user.Role))
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, err := GenerateRefreshToken(s.cfg, user.ID.String(), string(user.Role))
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.repo.UpdateRefreshToken(ctx, user.ID, newRefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	return &UpdateAccessTokenServiceResult{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
 	}, nil
 }

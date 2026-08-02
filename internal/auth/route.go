@@ -15,6 +15,7 @@ func RegisterRoutes(
 		r.Post("/signup/{role}", h.SignUp)
 		r.Post("/signin/{role}", h.SignIn)
 		r.Post("/signout", h.SignOut)
+		r.Post("/refresh", h.RefreshAccessToken)
 		r.With(authMiddleware).Get("/me", h.GetMe)
 	})
 }

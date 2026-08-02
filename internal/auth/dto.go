@@ -38,3 +38,8 @@ type GetMeResponse struct {
 	Email string    `json:"email"`
 	Role  string    `json:"role"`
 }
+
+type UpdateAccessTokenServiceResult struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}

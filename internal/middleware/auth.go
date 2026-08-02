@@ -9,6 +9,8 @@ import (
 	"github.com/naresh-official/ecommerce_go/internal/response"
 )
 
+var UserContextKey = "user_id"
+
 func Auth(cfg *configs.JWTConfig) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +26,7 @@ func Auth(cfg *configs.JWTConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
+			ctx := context.WithValue(r.Context(), UserContextKey, claims.UserID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
