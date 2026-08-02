@@ -23,7 +23,7 @@ type AppConfig struct {
 }
 
 type ServerConfig struct {
-	Port int `yaml:"port"`
+	Port string `yaml:"port"`
 }
 
 type PaginationConfig struct {

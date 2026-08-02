@@ -1,20 +1,31 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"log/slog"
+	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/naresh-official/ecommerce_go/configs"
+	"github.com/naresh-official/ecommerce_go/internal/router"
 )
 
 func main() {
 	configs.LoadEnv()
 
 	cfg, err := configs.LoadConfig()
-
 	if err != nil {
 		log.Fatal("Error in Loading Config ", err)
 	}
 
-	fmt.Println("CONFIG", cfg)
+	r := chi.NewRouter()
+
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	router.Register(r)
+
+	slog.Info("Server started at port " + cfg.Server.Port)
+	http.ListenAndServe(":"+cfg.Server.Port, r)
 }
