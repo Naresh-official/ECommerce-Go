@@ -10,8 +10,8 @@ migrate-create:
 migrate-up:
 	migrate -source $(MIGRATIONS_SOURCE) -database "$(DATABASE_URL)" up
 
-migrate-down:
-	migrate -source $(MIGRATIONS_SOURCE) -database "$(DATABASE_URL)" down
+migrate-down-one:
+	migrate -source $(MIGRATIONS_SOURCE) -database "$(DATABASE_URL)" down 1
 
 migrate-down-all:
 	migrate -source $(MIGRATIONS_SOURCE) -database "$(DATABASE_URL)" down -all

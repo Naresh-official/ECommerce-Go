@@ -71,6 +71,14 @@ type Address struct {
 	DeletedAt    pgtype.Timestamp `json:"deleted_at"`
 }
 
+type Category struct {
+	ID          uuid.UUID        `json:"id"`
+	Name        string           `json:"name"`
+	Description pgtype.Text      `json:"description"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
 type User struct {
 	ID           uuid.UUID        `json:"id"`
 	Name         string           `json:"name"`

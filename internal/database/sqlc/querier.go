@@ -12,15 +12,20 @@ import (
 
 type Querier interface {
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error)
+	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAddress(ctx context.Context, id uuid.UUID) error
+	DeleteCategory(ctx context.Context, id uuid.UUID) error
 	GetAddressById(ctx context.Context, id uuid.UUID) (Address, error)
 	GetAllAddressesOfUser(ctx context.Context, userID uuid.UUID) ([]Address, error)
+	GetAllCategories(ctx context.Context) ([]Category, error)
+	GetCategoryById(ctx context.Context, id uuid.UUID) (Category, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByEmailAndRole(ctx context.Context, arg GetUserByEmailAndRoleParams) (User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
 	SetDefaultAddress(ctx context.Context, id uuid.UUID) error
 	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (Address, error)
+	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
