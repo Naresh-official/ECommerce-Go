@@ -79,6 +79,30 @@ type Category struct {
 	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
 }
 
+type Product struct {
+	ID            uuid.UUID        `json:"id"`
+	SellerID      uuid.UUID        `json:"seller_id"`
+	CategoryID    pgtype.UUID      `json:"category_id"`
+	Name          string           `json:"name"`
+	Description   pgtype.Text      `json:"description"`
+	Price         pgtype.Numeric   `json:"price"`
+	StockQuantity int32            `json:"stock_quantity"`
+	Images        []string         `json:"images"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type Seller struct {
+	ID          uuid.UUID        `json:"id"`
+	OwnerID     uuid.UUID        `json:"owner_id"`
+	StoreName   string           `json:"store_name"`
+	Description pgtype.Text      `json:"description"`
+	IsActive    bool             `json:"is_active"`
+	IsVerified  bool             `json:"is_verified"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
 type User struct {
 	ID           uuid.UUID        `json:"id"`
 	Name         string           `json:"name"`

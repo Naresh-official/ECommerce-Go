@@ -15,7 +15,9 @@ import (
 	"github.com/naresh-official/ecommerce_go/internal/database"
 	"github.com/naresh-official/ecommerce_go/internal/database/sqlc"
 	appmiddleware "github.com/naresh-official/ecommerce_go/internal/middleware"
+	"github.com/naresh-official/ecommerce_go/internal/product"
 	"github.com/naresh-official/ecommerce_go/internal/router"
+	"github.com/naresh-official/ecommerce_go/internal/seller"
 	"github.com/naresh-official/ecommerce_go/internal/user"
 )
 
@@ -57,6 +59,14 @@ func main() {
 	categoryService := category.NewService(categoryRepository)
 	categoryHandler := category.NewHandler(categoryService)
 
+	sellerRepository := seller.NewRepository(queries)
+	sellerService := seller.NewService(sellerRepository)
+	sellerHandler := seller.NewHandler(sellerService)
+
+	productRepository := product.NewRepository(queries)
+	productService := product.NewService(productRepository)
+	productHandler := product.NewHandler(productService)
+
 	// Initialize the application with handlers and middleware
 
 	application := app.App{
@@ -65,6 +75,8 @@ func main() {
 			User:     userHandler,
 			Address:  addressHandler,
 			Category: categoryHandler,
+			Seller:   sellerHandler,
+			Product:  productHandler,
 		},
 		Middleware: app.Middlewares{
 			Auth:   appmiddleware.Auth(&cfg.JWT),

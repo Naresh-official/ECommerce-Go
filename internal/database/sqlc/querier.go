@@ -8,11 +8,14 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error)
 	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
+	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	CreateSeller(ctx context.Context, arg CreateSellerParams) (Seller, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAddress(ctx context.Context, id uuid.UUID) error
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
@@ -20,13 +23,27 @@ type Querier interface {
 	GetAllAddressesOfUser(ctx context.Context, userID uuid.UUID) ([]Address, error)
 	GetAllCategories(ctx context.Context) ([]Category, error)
 	GetCategoryById(ctx context.Context, id uuid.UUID) (Category, error)
+	GetProductById(ctx context.Context, id uuid.UUID) (Product, error)
+	GetProductsByCategoryId(ctx context.Context, categoryID pgtype.UUID) ([]Product, error)
+	GetProductsBySellerId(ctx context.Context, sellerID uuid.UUID) ([]Product, error)
+	GetSellerById(ctx context.Context, id uuid.UUID) (Seller, error)
+	GetSellerByOwnerId(ctx context.Context, ownerID uuid.UUID) (Seller, error)
+	GetSellerByStoreName(ctx context.Context, storeName string) (Seller, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByEmailAndRole(ctx context.Context, arg GetUserByEmailAndRoleParams) (User, error)
 	GetUserById(ctx context.Context, id uuid.UUID) (User, error)
+	MarkSellerAsActive(ctx context.Context, id uuid.UUID) (Seller, error)
+	MarkSellerAsInactive(ctx context.Context, id uuid.UUID) (Seller, error)
+	MarkSellerAsUnverified(ctx context.Context, id uuid.UUID) (Seller, error)
+	MarkSellerAsVerified(ctx context.Context, id uuid.UUID) (Seller, error)
 	SetDefaultAddress(ctx context.Context, id uuid.UUID) error
 	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (Address, error)
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
+	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
+	UpdateProductPrice(ctx context.Context, arg UpdateProductPriceParams) (Product, error)
+	UpdateProductStockQuantity(ctx context.Context, arg UpdateProductStockQuantityParams) (Product, error)
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
+	UpdateSeller(ctx context.Context, arg UpdateSellerParams) (Seller, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
 }

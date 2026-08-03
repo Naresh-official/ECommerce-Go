@@ -29,41 +29,30 @@ func Auth(cfg *configs.JWTConfig) func(http.Handler) http.Handler {
 	}
 }
 
-func AuthorizeUser() func(http.Handler) http.Handler {
+func AuthorizeRoles(allowedRoles ...auth.Role) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role := auth.GetUserRoleFromContext(r.Context())
-			if role != auth.RoleUser {
-				response.Error(w, http.StatusForbidden, "Forbidden")
-				return
+			for _, allowedRole := range allowedRoles {
+				if role == allowedRole {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
-			next.ServeHTTP(w, r)
+
+			response.Error(w, http.StatusForbidden, "Forbidden")
 		})
 	}
+}
+
+func AuthorizeUser() func(http.Handler) http.Handler {
+	return AuthorizeRoles(auth.RoleUser)
 }
 
 func AuthorizeAdmin() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role := auth.GetUserRoleFromContext(r.Context())
-			if role != auth.RoleAdmin {
-				response.Error(w, http.StatusForbidden, "Forbidden")
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
+	return AuthorizeRoles(auth.RoleAdmin)
 }
 
 func AuthorizeSeller() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role := auth.GetUserRoleFromContext(r.Context())
-			if role != auth.RoleSeller {
-				response.Error(w, http.StatusForbidden, "Forbidden")
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
+	return AuthorizeRoles(auth.RoleSeller)
 }
